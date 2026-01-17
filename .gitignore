@@ -1,2 +1,4 @@
 /backend/target/
 /backend/data/
+/frontend/.svelte-kit
+/frontend/node_modules
