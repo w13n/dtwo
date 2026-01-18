@@ -2,15 +2,19 @@
     import type { Settings } from "$lib/types";
     import { getSettingData } from "$lib/helpers";
 
-    export let settings: Settings;
-    export let onDelete: (id: string) => void;
+    interface Props {
+        settings: Settings;
+        onDelete: (id: string) => void;
+    }
 
-    $: displayData = getSettingData(settings);
-    $: previewJson = JSON.stringify(displayData, null, 2);
-    $: truncatedPreview =
-        previewJson.length > 200
+    let { settings, onDelete }: Props = $props();
+
+    let displayData = $derived(getSettingData(settings));
+    let previewJson = $derived(JSON.stringify(displayData, null, 2));
+    let truncatedPreview =
+        $derived(previewJson.length > 200
             ? previewJson.slice(0, 200) + "..."
-            : previewJson;
+            : previewJson);
 </script>
 
 <div class="settings-card">
@@ -21,7 +25,7 @@
             <button
                 type="button"
                 class="btn-link btn-link-danger"
-                on:click={() => onDelete(settings.id)}
+                onclick={() => onDelete(settings.id)}
             >
                 Delete
             </button>

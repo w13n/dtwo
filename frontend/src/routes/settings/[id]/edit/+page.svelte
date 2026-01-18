@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { preventDefault } from 'svelte/legacy';
+
     import { goto } from "$app/navigation";
     import { updateSettings, ApiClientError } from "$lib/api";
     import type { Notification, Settings } from "$lib/types";
@@ -7,12 +9,16 @@
     import type { PageData } from "./$types";
     import { getSettingData } from "$lib/helpers";
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    let jsonValue = JSON.stringify(getSettingData(data.settings));
-    let jsonError: string | null = null;
-    let loading = false;
-    let notification: Notification | null = null;
+    let { data }: Props = $props();
+
+    let jsonValue = $state(JSON.stringify(getSettingData(data.settings)));
+    let jsonError: string | null = $state();
+    let loading = $state(false);
+    let notification: Notification | null = $state(null);
 
     async function handleSubmit() {
         if (jsonError) {
@@ -73,7 +79,7 @@
             <code>{data.settings.id}</code>
         </div>
 
-        <form on:submit|preventDefault={handleSubmit}>
+        <form onsubmit={preventDefault(handleSubmit)}>
             <div class="form-group">
                 <label for="json-editor">Settings Data (JSON)</label>
                 <JsonEditor bind:value={jsonValue} bind:error={jsonError} />
@@ -85,7 +91,7 @@
                 <button
                     type="button"
                     class="btn-secondary"
-                    on:click={handleCancel}
+                    onclick={handleCancel}
                     disabled={loading}
                 >
                     Cancel

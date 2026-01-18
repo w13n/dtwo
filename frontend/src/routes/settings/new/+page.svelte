@@ -1,14 +1,16 @@
 <script lang="ts">
+    import { preventDefault } from 'svelte/legacy';
+
     import { goto } from "$app/navigation";
     import { createSettings, ApiClientError } from "$lib/api";
     import type { Notification } from "$lib/types";
     import JsonEditor from "$lib/components/JsonEditor.svelte";
     import InlineNotification from "$lib/components/InlineNotification.svelte";
 
-    let jsonValue = "{\n  \n}";
-    let jsonError: string | null = null;
-    let loading = false;
-    let notification: Notification | null = null;
+    let jsonValue = $state("{\n  \n}");
+    let jsonError: string | null = $state(null);
+    let loading = $state(false);
+    let notification: Notification | null = $state(null);
 
     async function handleSubmit() {
         if (jsonError) {
@@ -64,7 +66,7 @@
     </div>
 
     <div class="card">
-        <form on:submit|preventDefault={handleSubmit}>
+        <form onsubmit={preventDefault(handleSubmit)}>
             <div class="form-group">
                 <label for="json-editor">Settings Data (JSON)</label>
                 <JsonEditor bind:value={jsonValue} bind:error={jsonError} />
@@ -76,7 +78,7 @@
                 <button
                     type="button"
                     class="btn-secondary"
-                    on:click={handleCancel}
+                    onclick={handleCancel}
                     disabled={loading}
                 >
                     Cancel

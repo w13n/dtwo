@@ -1,13 +1,23 @@
 <script lang="ts">
+    import { run } from "svelte/legacy";
+
     import { onMount } from "svelte";
     import { json } from "@codemirror/lang-json";
 
-    export let value = "{}";
-    export let readonly = false;
-    export let error: string | null = null;
+    interface Props {
+        value?: string;
+        readonly?: boolean;
+        error?: string | null;
+    }
 
-    let editorContainer: HTMLDivElement;
-    let editorView: import("codemirror").EditorView | null = null;
+    let {
+        value = $bindable("{}"),
+        readonly = false,
+        error = $bindable(null),
+    }: Props = $props();
+
+    let editorContainer: HTMLDivElement = $state();
+    let editorView: import("codemirror").EditorView | null = $state(null);
 
     // Validate JSON and update error state
     function validateJson(content: string): boolean {
@@ -78,15 +88,17 @@
     });
 
     // Update editor content when value prop changes externally
-    $: if (editorView && value !== editorView.state.doc.toString()) {
-        editorView.dispatch({
-            changes: {
-                from: 0,
-                to: editorView.state.doc.length,
-                insert: value,
-            },
-        });
-    }
+    run(() => {
+        if (editorView && value !== editorView.state.doc.toString()) {
+            editorView.dispatch({
+                changes: {
+                    from: 0,
+                    to: editorView.state.doc.length,
+                    insert: value,
+                },
+            });
+        }
+    });
 </script>
 
 <div class="json-editor">

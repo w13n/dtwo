@@ -6,17 +6,17 @@
     import ConfirmDialog from "$lib/components/ConfirmDialog.svelte";
     import InlineNotification from "$lib/components/InlineNotification.svelte";
 
-    let items: Settings[] = [];
-    let pagination: PaginationInfo | null = null;
-    let loading = true;
-    let notification: Notification | null = null;
-    let currentPage = 0;
+    let items: Settings[] = $state([]);
+    let pagination: PaginationInfo | null = $state(null);
+    let loading = $state(true);
+    let notification: Notification | null = $state(null);
+    let currentPage = $state(0);
     let pageSize = 10;
 
     // Delete confirmation dialog state
-    let deleteDialogOpen = false;
+    let deleteDialogOpen = $state(false);
     let deleteTargetId: string | null = null;
-    let deleteLoading = false;
+    let deleteLoading = $state(false);
 
     async function loadSettings() {
         loading = true;
@@ -88,11 +88,13 @@
         }
     }
 
-    $: totalPages = pagination ? Math.ceil(pagination.total / pageSize) : 0;
-    $: hasNextPage = pagination
-        ? (currentPage + 1) * pageSize < pagination.total
-        : false;
-    $: hasPrevPage = currentPage > 0;
+    let totalPages = $derived(
+        pagination ? Math.ceil(pagination.total / pageSize) : 0,
+    );
+    let hasNextPage = $derived(
+        pagination ? (currentPage + 1) * pageSize < pagination.total : false,
+    );
+    let hasPrevPage = $derived(currentPage > 0);
 
     onMount(() => {
         loadSettings();
@@ -135,7 +137,7 @@
                 <button
                     type="button"
                     class="btn-secondary"
-                    on:click={prevPage}
+                    onclick={prevPage}
                     disabled={!hasPrevPage}
                 >
                     Previous
@@ -146,7 +148,7 @@
                 <button
                     type="button"
                     class="btn-secondary"
-                    on:click={nextPage}
+                    onclick={nextPage}
                     disabled={!hasNextPage}
                 >
                     Next

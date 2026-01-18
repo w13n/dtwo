@@ -1,14 +1,31 @@
 <script lang="ts">
-    export let open = false;
-    export let title = "Confirm";
-    export let message = "Are you sure?";
-    export let confirmText = "Confirm";
-    export let cancelText = "Cancel";
-    export let danger = false;
-    export let loading = false;
+    import { createBubbler, stopPropagation } from "svelte/legacy";
 
-    export let onConfirm: () => void = () => {};
-    export let onCancel: () => void = () => {};
+    const bubble = createBubbler();
+
+    interface Props {
+        open?: boolean;
+        title?: string;
+        message?: string;
+        confirmText?: string;
+        cancelText?: string;
+        danger?: boolean;
+        loading?: boolean;
+        onConfirm?: () => void;
+        onCancel?: () => void;
+    }
+
+    let {
+        open = false,
+        title = "Confirm",
+        message = "Are you sure?",
+        confirmText = "Confirm",
+        cancelText = "Cancel",
+        danger = false,
+        loading = false,
+        onConfirm = () => {},
+        onCancel = () => {},
+    }: Props = $props();
 
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === "Escape" && open && !loading) {
@@ -23,12 +40,12 @@
     }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if open}
     <div
         class="dialog-backdrop"
-        on:click={handleBackdropClick}
+        onclick={handleBackdropClick}
         role="presentation"
     >
         <div
@@ -36,7 +53,7 @@
             role="dialog"
             aria-modal="true"
             aria-labelledby="dialog-title"
-            on:click|stopPropagation
+            onclick={stopPropagation(bubble("click"))}
         >
             <h2 id="dialog-title" class="dialog-title">{title}</h2>
             <p class="dialog-message">{message}</p>
@@ -44,7 +61,7 @@
                 <button
                     type="button"
                     class="btn-secondary"
-                    on:click={onCancel}
+                    onclick={onCancel}
                     disabled={loading}
                 >
                     {cancelText}
@@ -52,7 +69,7 @@
                 <button
                     type="button"
                     class={danger ? "btn-danger" : "btn-primary"}
-                    on:click={onConfirm}
+                    onclick={onConfirm}
                     disabled={loading}
                 >
                     {#if loading}

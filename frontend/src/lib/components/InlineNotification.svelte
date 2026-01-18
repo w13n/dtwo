@@ -1,21 +1,29 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { onMount } from "svelte";
     import type { Notification } from "$lib/types";
 
-    export let notification: Notification | null = null;
-    export let autoDismissMs: number = 4000;
-
-    let visible = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    $: if (notification) {
-        visible = true;
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            visible = false;
-            notification = null;
-        }, autoDismissMs);
+    interface Props {
+        notification?: Notification | null;
+        autoDismissMs?: number;
     }
+
+    let { notification = $bindable(null), autoDismissMs = 4000 }: Props = $props();
+
+    let visible = $state(false);
+    let timeoutId: ReturnType<typeof setTimeout> | null = $state(null);
+
+    run(() => {
+        if (notification) {
+            visible = true;
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                visible = false;
+                notification = null;
+            }, autoDismissMs);
+        }
+    });
 
     onMount(() => {
         return () => {
