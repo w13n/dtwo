@@ -1,15 +1,11 @@
 <script lang="ts">
     import type { Settings } from "$lib/types";
+    import { getSettingData } from "$lib/helpers";
 
     export let settings: Settings;
     export let onDelete: (id: string) => void;
 
-    function getDisplayData(settings: Settings): Record<string, unknown> {
-        const { id, ...rest } = settings;
-        return rest;
-    }
-
-    $: displayData = getDisplayData(settings);
+    $: displayData = getSettingData(settings);
     $: previewJson = JSON.stringify(displayData, null, 2);
     $: truncatedPreview =
         previewJson.length > 200

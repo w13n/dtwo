@@ -1,6 +1,6 @@
 export interface Settings {
   id: string;
-  [key: string]: unknown;
+  data: Record<string, unknown>;
 }
 
 export interface PaginationInfo {

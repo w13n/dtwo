@@ -62,8 +62,8 @@ declare module '$env/static/private' {
 	export const npm_config_node_gyp: string;
 	export const npm_package_version: string;
 	export const XPC_SERVICE_NAME: string;
-	export const HOME: string;
 	export const SHLVL: string;
+	export const HOME: string;
 	export const npm_config_cache: string;
 	export const STARSHIP_SESSION_KEY: string;
 	export const LOGNAME: string;
@@ -143,8 +143,8 @@ declare module '$env/dynamic/private' {
 		npm_config_node_gyp: string;
 		npm_package_version: string;
 		XPC_SERVICE_NAME: string;
-		HOME: string;
 		SHLVL: string;
+		HOME: string;
 		npm_config_cache: string;
 		STARSHIP_SESSION_KEY: string;
 		LOGNAME: string;

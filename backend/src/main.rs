@@ -9,6 +9,7 @@ mod traits;
 use std::sync::Arc;
 
 use tokio::net::TcpListener;
+use tower_http::normalize_path::NormalizePathLayer;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -39,17 +40,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let repository = SqliteSettingsRepository::new(&config.database_path).await?;
     tracing::info!("Database initialized at: {}", config.database_path);
 
+    let port = config.port; // save for later
+
     // Create application state
     let state = Arc::new(AppState {
         repository: Arc::new(repository),
-        config: config.clone(),
+        config,
     });
 
     // Build router
-    let app = create_router(state).layer(TraceLayer::new_for_http());
+    let app = create_router(state)
+        .layer(TraceLayer::new_for_http())
+        .layer(NormalizePathLayer::trim_trailing_slash());
 
     // Start server
-    let addr = format!("0.0.0.0:{}", config.port);
+    let addr = format!("0.0.0.0:{}", port);
     tracing::info!("Starting server on {}", addr);
 
     let listener = TcpListener::bind(&addr).await?;

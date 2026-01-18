@@ -5,16 +5,11 @@
     import JsonEditor from "$lib/components/JsonEditor.svelte";
     import InlineNotification from "$lib/components/InlineNotification.svelte";
     import type { PageData } from "./$types";
+    import { getSettingData } from "$lib/helpers";
 
     export let data: PageData;
 
-    // Extract data without id for editing
-    function getEditableData(settings: Settings): Record<string, unknown> {
-        const { id, ...rest } = settings;
-        return rest;
-    }
-
-    let jsonValue = JSON.stringify(getEditableData(data.settings), null, 2);
+    let jsonValue = JSON.stringify(getSettingData(data.settings));
     let jsonError: string | null = null;
     let loading = false;
     let notification: Notification | null = null;

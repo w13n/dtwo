@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 use axum::{
     Json,
@@ -39,7 +39,7 @@ pub async fn create_settings(
     let settings = Settings::new(body);
     let created = state.repository.create(settings).await?;
 
-    Ok((StatusCode::CREATED, Json(flatten_settings(&created))))
+    Ok((StatusCode::CREATED, Json(convert_settings(&created))))
 }
 
 pub async fn get_all_settings(
@@ -60,27 +60,28 @@ pub async fn get_all_settings(
     headers.insert("X-Limit", HeaderValue::from(result.limit as u64));
     headers.insert("X-Offset", HeaderValue::from(result.offset as u64));
 
-    let items: Vec<Value> = result.items.iter().map(flatten_settings).collect();
+    let items: Vec<Value> = result.items.iter().map(convert_settings).collect();
 
     Ok((headers, Json(items)))
 }
 
 pub async fn get_settings_by_id(
     State(state): State<Arc<AppState>>,
-    Path(id): Path<Uuid>,
+    Path(uuid): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
+    println!("got here");
     let settings = state
         .repository
-        .find_by_id(id)
+        .find_by_id(Uuid::from_str(&uuid).unwrap())
         .await?
         .ok_or(AppError::NotFound)?;
 
-    Ok(Json(flatten_settings(&settings)))
+    Ok(Json(convert_settings(&settings)))
 }
 
 pub async fn update_settings(
     State(state): State<Arc<AppState>>,
-    Path(id): Path<Uuid>,
+    Path(uid): Path<Uuid>,
     Json(body): Json<Value>,
 ) -> Result<impl IntoResponse, AppError> {
     if !body.is_object() {
@@ -89,31 +90,35 @@ pub async fn update_settings(
         ));
     }
 
-    let settings = Settings { id, data: body };
+    let settings = Settings {
+        id: uid,
+        data: body,
+    };
     let updated = state
         .repository
-        .update(id, settings)
+        .update(uid, settings)
         .await?
         .ok_or(AppError::NotFound)?;
 
-    Ok(Json(flatten_settings(&updated)))
+    Ok(Json(convert_settings(&updated)))
 }
 
 pub async fn delete_settings(
     State(state): State<Arc<AppState>>,
-    Path(id): Path<Uuid>,
+    Path(uid): Path<Uuid>,
 ) -> Result<impl IntoResponse, AppError> {
-    state.repository.delete(id).await?;
+    state.repository.delete(uid).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Flattens a Settings object so the response includes `id` at the top level
-/// alongside the data fields, rather than nesting data under a separate key.
-fn flatten_settings(settings: &Settings) -> Value {
-    let mut obj = match &settings.data {
+/// Converts a settings object to JSON
+fn convert_settings(settings: &Settings) -> Value {
+    let data = match &settings.data {
         Value::Object(map) => map.clone(),
         _ => serde_json::Map::new(),
     };
+    let mut obj = serde_json::Map::new();
     obj.insert("id".to_string(), Value::String(settings.id.to_string()));
+    obj.insert("data".to_string(), Value::Object(data));
     Value::Object(obj)
 }
