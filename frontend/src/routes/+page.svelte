@@ -111,7 +111,7 @@
 <div class="container">
     <div class="page-header">
         <h1>Settings</h1>
-        <a href="/new" class="btn-primary">Create New</a>
+        <a href="/new"><button class="btn-primary">Create New</button></a>
     </div>
 
     <InlineNotification bind:notification />
@@ -124,7 +124,10 @@
     {:else if items.length === 0}
         <div class="card empty-state">
             <p>No settings found.</p>
-            <a href="/new" class="btn-primary">Create your first settings</a>
+            <a href="/new"
+                ><button class="btn-primary">Create your first Setting</button
+                ></a
+            >
         </div>
     {:else}
         <div class="settings-list">

@@ -39,7 +39,10 @@ pub async fn create_settings(
     let settings = Settings::new(body);
     let created = state.repository.create(settings).await?;
 
-    Ok((StatusCode::CREATED, Json(convert_settings(&created))))
+    Ok((
+        StatusCode::CREATED,
+        Json(serde_json::to_value(&created).expect("object can be deserialized")),
+    ))
 }
 
 pub async fn get_all_settings(
@@ -60,7 +63,11 @@ pub async fn get_all_settings(
     headers.insert("X-Limit", HeaderValue::from(result.limit as u64));
     headers.insert("X-Offset", HeaderValue::from(result.offset as u64));
 
-    let items: Vec<Value> = result.items.iter().map(convert_settings).collect();
+    let items: Vec<Value> = result
+        .items
+        .iter()
+        .map(|x| serde_json::to_value(&x).expect("object can be deserialized"))
+        .collect();
 
     Ok((headers, Json(items)))
 }
@@ -76,7 +83,9 @@ pub async fn get_settings_by_id(
         .await?
         .ok_or(AppError::NotFound)?;
 
-    Ok(Json(convert_settings(&settings)))
+    Ok(Json(
+        serde_json::to_value(&settings).expect("object can be deserialized"),
+    ))
 }
 
 pub async fn update_settings(
@@ -100,7 +109,9 @@ pub async fn update_settings(
         .await?
         .ok_or(AppError::NotFound)?;
 
-    Ok(Json(convert_settings(&updated)))
+    Ok(Json(
+        serde_json::to_value(&updated).expect("object can be deserialized"),
+    ))
 }
 
 pub async fn delete_settings(
@@ -109,16 +120,4 @@ pub async fn delete_settings(
 ) -> Result<impl IntoResponse, AppError> {
     state.repository.delete(uid).await?;
     Ok(StatusCode::NO_CONTENT)
-}
-
-/// Converts a settings object to JSON
-fn convert_settings(settings: &Settings) -> Value {
-    let data = match &settings.data {
-        Value::Object(map) => map.clone(),
-        _ => serde_json::Map::new(),
-    };
-    let mut obj = serde_json::Map::new();
-    obj.insert("id".to_string(), Value::String(settings.id.to_string()));
-    obj.insert("data".to_string(), Value::Object(data));
-    Value::Object(obj)
 }

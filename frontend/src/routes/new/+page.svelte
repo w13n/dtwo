@@ -6,7 +6,7 @@
     import JsonEditor from "$lib/components/JsonEditor.svelte";
     import InlineNotification from "$lib/components/InlineNotification.svelte";
 
-    let jsonValue = $state("{\n  \n}");
+    let jsonValue = $state("{}");
     let jsonError: string | null = $state(null);
     let loading = $state(false);
     let notification: Notification | null = $state(null);

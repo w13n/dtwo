@@ -50,15 +50,12 @@ export async function getAllSettings(
   const response = await fetch(url);
 
   const items = await handleResponse<Settings[]>(response);
-  console.log(response.headers);
 
   const pagination: PaginationInfo = {
     total: parseInt(response.headers.get("X-Total-Count") || "0", 10),
     limit: parseInt(response.headers.get("X-Limit") || "10", 10),
     offset: parseInt(response.headers.get("X-Offset") || "0", 10),
   };
-
-  console.log(pagination);
 
   return { items, pagination };
 }
