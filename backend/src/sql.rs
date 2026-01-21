@@ -1,3 +1,5 @@
+use std::time;
+
 use async_trait::async_trait;
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
 use uuid::Uuid;
@@ -38,7 +40,8 @@ impl SqliteSettingsRepository {
             r#"
             CREATE TABLE IF NOT EXISTS settings (
                 id TEXT PRIMARY KEY NOT NULL,
-                data TEXT NOT NULL
+                data TEXT NOT NULL,
+                time INTEGER NOT NULL
             )
             "#,
         )
@@ -56,9 +59,14 @@ impl SettingsRepository for SqliteSettingsRepository {
         let data_str = serde_json::to_string(&settings.data)
             .map_err(|e| AppError::Internal(format!("Failed to serialize JSON: {}", e)))?;
 
-        sqlx::query("INSERT INTO settings (id, data) VALUES (?, ?)")
+        let time = time::SystemTime::now()
+            .duration_since(time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+        sqlx::query("INSERT INTO settings (id, data, time) VALUES (?, ?, ?)")
             .bind(&id_str)
             .bind(&data_str)
+            .bind(&time)
             .execute(&self.pool)
             .await?;
 
@@ -74,7 +82,7 @@ impl SettingsRepository for SqliteSettingsRepository {
             .await?;
 
         let rows: Vec<(String, String)> =
-            sqlx::query_as("SELECT id, data FROM settings ORDER BY id LIMIT ? OFFSET ?")
+            sqlx::query_as("SELECT id, data FROM settings ORDER BY time DESC LIMIT ? OFFSET ?")
                 .bind(params.limit as i64)
                 .bind(params.offset as i64)
                 .fetch_all(&self.pool)
@@ -124,9 +132,14 @@ impl SettingsRepository for SqliteSettingsRepository {
         let id_str = id.to_string();
         let data_str = serde_json::to_string(&settings.data)
             .map_err(|e| AppError::Internal(format!("Failed to serialize JSON: {}", e)))?;
+        let time = time::SystemTime::now()
+            .duration_since(time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
 
-        let result = sqlx::query("UPDATE settings SET data = ? WHERE id = ?")
+        let result = sqlx::query("UPDATE settings SET data = ?, time = ? WHERE id = ?")
             .bind(&data_str)
+            .bind(&time)
             .bind(&id_str)
             .execute(&self.pool)
             .await?;
