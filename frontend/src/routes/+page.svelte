@@ -125,7 +125,7 @@
         <div class="card empty-state">
             <p>No settings found.</p>
             <a href="/new"
-                ><button class="btn-primary">Create your first Setting</button
+                ><button class="btn-primary">Create your first Settings</button
                 ></a
             >
         </div>
