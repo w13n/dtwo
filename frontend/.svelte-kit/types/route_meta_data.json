@@ -1,7 +1,0 @@
-{
-	"/": [],
-	"/new": [],
-	"/[id]/edit": [
-		"src/routes/[id]/edit/+page.ts"
-	]
-}
