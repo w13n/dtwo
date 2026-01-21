@@ -9,7 +9,7 @@ mod traits;
 use std::sync::Arc;
 
 use tokio::net::TcpListener;
-use tower_http::normalize_path::NormalizePathLayer;
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Build router
     let app = create_router(state)
         .layer(TraceLayer::new_for_http())
-        .layer(NormalizePathLayer::trim_trailing_slash());
+        .layer(CorsLayer::permissive());
 
     // Start server
     let addr = format!("0.0.0.0:{}", port);

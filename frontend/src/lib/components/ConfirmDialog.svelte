@@ -1,8 +1,4 @@
 <script lang="ts">
-    import { createBubbler, stopPropagation } from "svelte/legacy";
-
-    const bubble = createBubbler();
-
     interface Props {
         open?: boolean;
         title?: string;
@@ -52,8 +48,9 @@
             class="dialog"
             role="dialog"
             aria-modal="true"
+            onkeydown={handleKeydown}
+            tabindex="0"
             aria-labelledby="dialog-title"
-            onclick={stopPropagation(bubble("click"))}
         >
             <h2 id="dialog-title" class="dialog-title">{title}</h2>
             <p class="dialog-message">{message}</p>

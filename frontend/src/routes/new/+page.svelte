@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { preventDefault } from 'svelte/legacy';
-
     import { goto } from "$app/navigation";
+    import { enhance } from "$app/forms";
     import { createSettings, ApiClientError } from "$lib/api";
     import type { Notification } from "$lib/types";
     import JsonEditor from "$lib/components/JsonEditor.svelte";
@@ -31,7 +30,7 @@
                 type: "success",
                 message: "Settings created successfully",
             };
-            setTimeout(() => goto("/settings"), 1000);
+            setTimeout(() => goto("/"), 1000);
         } catch (e) {
             if (e instanceof ApiClientError) {
                 notification = { type: "error", message: e.message };
@@ -52,7 +51,7 @@
     }
 
     function handleCancel() {
-        goto("/settings");
+        goto("/");
     }
 </script>
 
@@ -66,7 +65,7 @@
     </div>
 
     <div class="card">
-        <form onsubmit={preventDefault(handleSubmit)}>
+        <form onsubmit={handleSubmit} use:enhance>
             <div class="form-group">
                 <label for="json-editor">Settings Data (JSON)</label>
                 <JsonEditor bind:value={jsonValue} bind:error={jsonError} />

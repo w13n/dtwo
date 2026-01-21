@@ -9,19 +9,21 @@
 
     let { settings, onDelete }: Props = $props();
 
-    let displayData = $derived(getSettingData(settings));
-    let previewJson = $derived(JSON.stringify(displayData, null, 2));
-    let truncatedPreview =
-        $derived(previewJson.length > 200
+    let previewJson = $derived(
+        JSON.stringify(getSettingData(settings), null, 2),
+    );
+    let truncatedPreview = $derived(
+        previewJson.length > 200
             ? previewJson.slice(0, 200) + "..."
-            : previewJson);
+            : previewJson,
+    );
 </script>
 
 <div class="settings-card">
     <div class="settings-header">
         <code class="settings-id">{settings.id}</code>
         <div class="settings-actions">
-            <a href="/settings/{settings.id}/edit" class="btn-link">Edit</a>
+            <a href="/{settings.id}/edit" class="btn-link">Edit</a>
             <button
                 type="button"
                 class="btn-link btn-link-danger"

@@ -30,8 +30,8 @@ declare module '$env/static/private' {
 	export const TERM_PROGRAM: string;
 	export const NODE: string;
 	export const INIT_CWD: string;
-	export const TERM: string;
 	export const SHELL: string;
+	export const TERM: string;
 	export const TMPDIR: string;
 	export const npm_config_global_prefix: string;
 	export const TERM_PROGRAM_VERSION: string;
@@ -66,8 +66,8 @@ declare module '$env/static/private' {
 	export const HOME: string;
 	export const SHLVL: string;
 	export const npm_config_cache: string;
-	export const LOGNAME: string;
 	export const STARSHIP_SESSION_KEY: string;
+	export const LOGNAME: string;
 	export const npm_lifecycle_script: string;
 	export const ALACRITTY_WINDOW_ID: string;
 	export const LC_CTYPE: string;
@@ -113,8 +113,8 @@ declare module '$env/dynamic/private' {
 		TERM_PROGRAM: string;
 		NODE: string;
 		INIT_CWD: string;
-		TERM: string;
 		SHELL: string;
+		TERM: string;
 		TMPDIR: string;
 		npm_config_global_prefix: string;
 		TERM_PROGRAM_VERSION: string;
@@ -149,8 +149,8 @@ declare module '$env/dynamic/private' {
 		HOME: string;
 		SHLVL: string;
 		npm_config_cache: string;
-		LOGNAME: string;
 		STARSHIP_SESSION_KEY: string;
+		LOGNAME: string;
 		npm_lifecycle_script: string;
 		ALACRITTY_WINDOW_ID: string;
 		LC_CTYPE: string;

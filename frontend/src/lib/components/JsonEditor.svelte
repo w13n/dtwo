@@ -1,7 +1,5 @@
 <script lang="ts">
-    import { run } from "svelte/legacy";
-
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { json } from "@codemirror/lang-json";
 
     interface Props {
@@ -16,7 +14,7 @@
         error = $bindable(null),
     }: Props = $props();
 
-    let editorContainer: HTMLDivElement = $state();
+    let editorContainer: HTMLDivElement | null = $state(null);
     let editorView: import("codemirror").EditorView | null = $state(null);
 
     // Validate JSON and update error state
@@ -35,6 +33,17 @@
         }
     }
 
+    // Pretty format JSON string
+    function formatJson(content: string): string {
+        try {
+            const parsed = JSON.parse(content);
+            return JSON.stringify(parsed, null, 2);
+        } catch {
+            // Return original if invalid JSON
+            return content;
+        }
+    }
+
     onMount(async () => {
         const { EditorView, basicSetup } = await import("codemirror");
         const { EditorState } = await import("@codemirror/state");
@@ -46,8 +55,12 @@
             }
         });
 
+        // Pretty format the initial value
+        const formattedValue = formatJson(value);
+        value = formattedValue;
+
         const state = EditorState.create({
-            doc: value,
+            doc: formattedValue,
             extensions: [
                 basicSetup,
                 json(),
@@ -77,18 +90,19 @@
 
         editorView = new EditorView({
             state,
-            parent: editorContainer,
+            parent: editorContainer!,
         });
 
         validateJson(value);
+    });
 
-        return () => {
-            editorView?.destroy();
-        };
+    // Cleanup on destroy
+    onDestroy(() => {
+        editorView?.destroy();
     });
 
     // Update editor content when value prop changes externally
-    run(() => {
+    $effect(() => {
         if (editorView && value !== editorView.state.doc.toString()) {
             editorView.dispatch({
                 changes: {

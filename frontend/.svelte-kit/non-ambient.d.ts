@@ -27,19 +27,18 @@ export {};
 
 declare module "$app/types" {
 	export interface AppTypes {
-		RouteId(): "/" | "/settings" | "/settings/new" | "/settings/[id]" | "/settings/[id]/edit";
+		RouteId(): "/" | "/new" | "/[id]" | "/[id]/edit";
 		RouteParams(): {
-			"/settings/[id]": { id: string };
-			"/settings/[id]/edit": { id: string }
+			"/[id]": { id: string };
+			"/[id]/edit": { id: string }
 		};
 		LayoutParams(): {
 			"/": { id?: string };
-			"/settings": { id?: string };
-			"/settings/new": Record<string, never>;
-			"/settings/[id]": { id: string };
-			"/settings/[id]/edit": { id: string }
+			"/new": Record<string, never>;
+			"/[id]": { id: string };
+			"/[id]/edit": { id: string }
 		};
-		Pathname(): "/" | "/settings" | "/settings/" | "/settings/new" | "/settings/new/" | `/settings/${string}` & {} | `/settings/${string}/` & {} | `/settings/${string}/edit` & {} | `/settings/${string}/edit/` & {};
+		Pathname(): "/" | "/new" | "/new/" | `/${string}` & {} | `/${string}/` & {} | `/${string}/edit` & {} | `/${string}/edit/` & {};
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): string & {};
 	}

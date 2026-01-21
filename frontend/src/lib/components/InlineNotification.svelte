@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { onMount } from "svelte";
     import type { Notification } from "$lib/types";
 
@@ -9,30 +7,24 @@
         autoDismissMs?: number;
     }
 
-    let { notification = $bindable(null), autoDismissMs = 4000 }: Props = $props();
+    let { notification = $bindable(null), autoDismissMs = 4000 }: Props =
+        $props();
 
-    let visible = $state(false);
     let timeoutId: ReturnType<typeof setTimeout> | null = $state(null);
-
-    run(() => {
-        if (notification) {
-            visible = true;
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                visible = false;
-                notification = null;
-            }, autoDismissMs);
-        }
-    });
 
     onMount(() => {
         return () => {
-            if (timeoutId) clearTimeout(timeoutId);
+            if (notification) {
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    notification = null;
+                }, autoDismissMs);
+            }
         };
     });
 </script>
 
-{#if visible && notification}
+{#if notification}
     <div class="notification notification-{notification.type}" role="alert">
         <span class="notification-icon">
             {#if notification.type === "success"}

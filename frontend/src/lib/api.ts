@@ -41,16 +41,16 @@ export interface GetAllSettingsResult {
 export async function getAllSettings(
   limit?: number,
   offset?: number,
-  fetch_fn: typeof fetch = fetch,
 ): Promise<GetAllSettingsResult> {
   const params = new URLSearchParams();
   if (limit !== undefined) params.set("limit", limit.toString());
   if (offset !== undefined) params.set("offset", offset.toString());
 
   const url = `${API_URL}/settings${params.toString() ? `?${params}` : ""}`;
-  const response = await fetch_fn(url);
+  const response = await fetch(url);
 
   const items = await handleResponse<Settings[]>(response);
+  console.log(response.headers);
 
   const pagination: PaginationInfo = {
     total: parseInt(response.headers.get("X-Total-Count") || "0", 10),
@@ -58,22 +58,20 @@ export async function getAllSettings(
     offset: parseInt(response.headers.get("X-Offset") || "0", 10),
   };
 
+  console.log(pagination);
+
   return { items, pagination };
 }
 
-export async function getSettingsById(
-  id: string,
-  fetch_fn: typeof fetch = fetch,
-): Promise<Settings> {
-  const response = await fetch_fn(`${API_URL}/settings/${id}`);
+export async function getSettingsById(id: string): Promise<Settings> {
+  const response = await fetch(`${API_URL}/settings/${id}`);
   return handleResponse<Settings>(response);
 }
 
 export async function createSettings(
   data: Record<string, unknown>,
-  fetch_fn: typeof fetch = fetch,
 ): Promise<Settings> {
-  const response = await fetch_fn(`${API_URL}/settings`, {
+  const response = await fetch(`${API_URL}/settings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -86,9 +84,8 @@ export async function createSettings(
 export async function updateSettings(
   id: string,
   data: Record<string, unknown>,
-  fetch_fn: typeof fetch = fetch,
 ): Promise<Settings> {
-  const response = await fetch_fn(`${API_URL}/settings/${id}`, {
+  const response = await fetch(`${API_URL}/settings/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -98,11 +95,8 @@ export async function updateSettings(
   return handleResponse<Settings>(response);
 }
 
-export async function deleteSettings(
-  id: string,
-  fetch_fn: typeof fetch = fetch,
-): Promise<void> {
-  const response = await fetch_fn(`${API_URL}/settings/${id}`, {
+export async function deleteSettings(id: string): Promise<void> {
+  const response = await fetch(`${API_URL}/settings/${id}`, {
     method: "DELETE",
   });
   return handleResponse<void>(response);

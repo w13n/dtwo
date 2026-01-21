@@ -1,22 +1,22 @@
 <script lang="ts">
-    import { preventDefault } from 'svelte/legacy';
-
     import { goto } from "$app/navigation";
+    import { enhance } from "$app/forms";
     import { updateSettings, ApiClientError } from "$lib/api";
     import type { Notification, Settings } from "$lib/types";
     import JsonEditor from "$lib/components/JsonEditor.svelte";
     import InlineNotification from "$lib/components/InlineNotification.svelte";
-    import type { PageData } from "./$types";
     import { getSettingData } from "$lib/helpers";
 
     interface Props {
-        data: PageData;
+        data: {
+            settings: Settings;
+        };
     }
 
     let { data }: Props = $props();
 
     let jsonValue = $state(JSON.stringify(getSettingData(data.settings)));
-    let jsonError: string | null = $state();
+    let jsonError: string | null = $state(null);
     let loading = $state(false);
     let notification: Notification | null = $state(null);
 
@@ -39,7 +39,7 @@
                 type: "success",
                 message: "Settings updated successfully",
             };
-            setTimeout(() => goto("/settings"), 1000);
+            setTimeout(() => goto("/"), 1000);
         } catch (e) {
             if (e instanceof ApiClientError) {
                 notification = { type: "error", message: e.message };
@@ -60,7 +60,7 @@
     }
 
     function handleCancel() {
-        goto("/settings");
+        goto("/");
     }
 </script>
 
@@ -79,7 +79,7 @@
             <code>{data.settings.id}</code>
         </div>
 
-        <form onsubmit={preventDefault(handleSubmit)}>
+        <form onsubmit={handleSubmit} use:enhance>
             <div class="form-group">
                 <label for="json-editor">Settings Data (JSON)</label>
                 <JsonEditor bind:value={jsonValue} bind:error={jsonError} />

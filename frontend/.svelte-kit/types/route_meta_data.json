@@ -1,8 +1,7 @@
 {
 	"/": [],
-	"/settings": [],
-	"/settings/new": [],
-	"/settings/[id]/edit": [
-		"src/routes/settings/[id]/edit/+page.ts"
+	"/new": [],
+	"/[id]/edit": [
+		"src/routes/[id]/edit/+page.ts"
 	]
 }

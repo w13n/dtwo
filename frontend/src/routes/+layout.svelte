@@ -1,7 +1,7 @@
 <script lang="ts">
     import "../app.css";
     interface Props {
-        children?: import('svelte').Snippet;
+        children?: import("svelte").Snippet;
     }
 
     let { children }: Props = $props();
@@ -9,7 +9,7 @@
 
 <header class="app-header">
     <div class="container header-content">
-        <a href="/settings" class="logo">Settings Manager</a>
+        <a href="/" class="logo">Settings Manager</a>
     </div>
 </header>
 
