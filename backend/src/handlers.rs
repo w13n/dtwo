@@ -66,7 +66,7 @@ pub async fn get_all_settings(
     let items: Vec<Value> = result
         .items
         .iter()
-        .map(|x| serde_json::to_value(&x).expect("object can be deserialized"))
+        .map(|x| serde_json::to_value(x).expect("object can be deserialized"))
         .collect();
 
     Ok((headers, Json(items)))
@@ -129,5 +129,143 @@ pub async fn delete_settings(
         Ok(StatusCode::NO_CONTENT)
     } else {
         Err(AppError::NotFound)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+    use std::sync::{Arc, RwLock};
+
+    use async_trait::async_trait;
+    use serde_json::Value;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::error::AppError;
+    use crate::settings::PaginatedResult;
+    use crate::traits::SettingsRepository;
+
+    pub struct SettingsMock {
+        values: RwLock<HashMap<Uuid, Settings>>,
+    }
+
+    impl SettingsMock {
+        pub fn new() -> Self {
+            SettingsMock {
+                values: RwLock::new(HashMap::new()),
+            }
+        }
+
+        pub fn contains(&self, key: Uuid) -> bool {
+            self.values.read().unwrap().contains_key(&key)
+        }
+
+        pub fn get(&self, key: Uuid) -> Option<Settings> {
+            self.values.read().unwrap().get(&key).cloned()
+        }
+
+        pub fn get_all(&self) -> Vec<Settings> {
+            self.values.read().unwrap().values().cloned().collect()
+        }
+
+        pub fn len(&self) -> usize {
+            self.values.read().unwrap().len()
+        }
+    }
+
+    #[async_trait]
+    impl SettingsRepository for SettingsMock {
+        async fn create(&self, settings: Settings) -> Result<Settings, AppError> {
+            let key = Uuid::new_v4();
+            self.values.write().unwrap().insert(key, settings.clone());
+            Ok(settings)
+        }
+
+        async fn find_all(
+            &self,
+            params: PaginationParams,
+        ) -> Result<PaginatedResult<Settings>, AppError> {
+            let total = self.values.read().unwrap().len() as u64;
+            let mut all_keys: Vec<_> = self.values.read().unwrap().keys().copied().collect();
+
+            all_keys.sort();
+
+            let mut items = Vec::with_capacity(params.limit as usize);
+            all_keys
+                .iter()
+                .skip(params.offset as usize)
+                .take(params.limit as usize)
+                .for_each(|k| {
+                    items.push(
+                        self.values
+                            .read()
+                            .unwrap()
+                            .get(k)
+                            .expect("key exists")
+                            .clone(),
+                    )
+                });
+
+            Ok(PaginatedResult {
+                items,
+                total,
+                limit: params.limit,
+                offset: params.offset,
+            })
+        }
+        async fn find_by_id(&self, id: Uuid) -> Result<Option<Settings>, AppError> {
+            let value = self.values.read().unwrap().get(&id).cloned();
+            Ok(value)
+        }
+        async fn update(&self, id: Uuid, settings: Settings) -> Result<Option<Settings>, AppError> {
+            let key = Uuid::new_v4();
+            if self.values.read().unwrap().contains_key(&id) {
+                self.values.write().unwrap().insert(key, settings.clone());
+                Ok(Some(settings))
+            } else {
+                Ok(None)
+            }
+        }
+        async fn delete(&self, id: Uuid) -> Result<(), AppError> {
+            self.values.write().unwrap().remove(&id);
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn create_settings_works_basic_map() {
+        let json_1: Value = serde_json::from_str("{\"foo\": \"bar\"}").unwrap();
+
+        let mock = Arc::new(SettingsMock::new());
+        let config = Config::default();
+        let state = Arc::new(AppState {
+            repository: mock.clone(),
+            config,
+        });
+
+        create_settings(State(state), Json(json_1.clone()))
+            .await
+            .unwrap();
+        assert_eq!((*mock).len(), 1);
+        assert_eq!((*mock).get_all()[0].data, json_1);
+    }
+
+    #[tokio::test]
+    async fn create_settings_works_empty_json() {
+        let json_1: Value = serde_json::from_str("{}").unwrap();
+
+        let mock = Arc::new(SettingsMock::new());
+        let config = Config::default();
+        let state = Arc::new(AppState {
+            repository: mock.clone(),
+            config,
+        });
+
+        create_settings(State(state), Json(json_1.clone()))
+            .await
+            .unwrap();
+        assert_eq!((*mock).len(), 1);
+        assert_eq!((*mock).get_all()[0].data, json_1);
     }
 }

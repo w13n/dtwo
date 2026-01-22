@@ -1,6 +1,6 @@
 use std::env;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Config {
     pub database_path: String,
     pub default_limit: u32,
@@ -26,5 +26,14 @@ impl Config {
                 .parse()
                 .expect("PORT must be a valid u16"),
         })
+    }
+
+    pub fn new() -> Self {
+        Self {
+            database_path: "./data/settings.db".to_string(),
+            default_limit: 10,
+            max_limit: 100,
+            port: 3000,
+        }
     }
 }
