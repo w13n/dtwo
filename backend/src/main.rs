@@ -8,9 +8,11 @@ mod traits;
 
 use std::sync::Arc;
 
-use tokio::net::TcpListener;
-use tower_http::cors::CorsLayer;
+use axum::ServiceExt;
+use axum::extract::Request;
+use tower::Layer;
 use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, normalize_path::NormalizePathLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use config::Config;
@@ -48,17 +50,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config,
     });
 
+    tracing::info!("got here");
     // Build router
-    let app = create_router(state)
-        .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive());
+    let app = NormalizePathLayer::trim_trailing_slash().layer(
+        create_router(state)
+            .layer(TraceLayer::new_for_http())
+            .layer(CorsLayer::permissive()),
+    );
 
     // Start server
     let addr = format!("0.0.0.0:{}", port);
     tracing::info!("Starting server on {}", addr);
 
-    let listener = TcpListener::bind(&addr).await?;
-    axum::serve(listener, app).await?;
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+
+    axum::serve(listener, ServiceExt::<Request>::into_make_service(app))
+        .await
+        .unwrap();
 
     Ok(())
 }

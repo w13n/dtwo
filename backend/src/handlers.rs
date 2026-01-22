@@ -76,48 +76,58 @@ pub async fn get_settings_by_id(
     State(state): State<Arc<AppState>>,
     Path(uuid): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    println!("got here");
-    let settings = state
-        .repository
-        .find_by_id(Uuid::from_str(&uuid).unwrap())
-        .await?
-        .ok_or(AppError::NotFound)?;
-
-    Ok(Json(
-        serde_json::to_value(&settings).expect("object can be deserialized"),
-    ))
+    if let Ok(uuid) = Uuid::from_str(&uuid) {
+        let settings = state
+            .repository
+            .find_by_id(uuid)
+            .await?
+            .ok_or(AppError::NotFound)?;
+        Ok(Json(
+            serde_json::to_value(&settings).expect("object can be deserialized"),
+        ))
+    } else {
+        Err(AppError::NotFound)
+    }
 }
 
 pub async fn update_settings(
     State(state): State<Arc<AppState>>,
-    Path(uid): Path<Uuid>,
+    Path(uid): Path<String>,
     Json(body): Json<Value>,
 ) -> Result<impl IntoResponse, AppError> {
-    if !body.is_object() {
-        return Err(AppError::InvalidJson(
-            "Request body must be a JSON object".to_string(),
-        ));
+    if let Ok(uid) = Uuid::from_str(&uid) {
+        if !body.is_object() {
+            return Err(AppError::InvalidJson(
+                "Request body must be a JSON object".to_string(),
+            ));
+        }
+
+        let settings = Settings {
+            id: uid,
+            data: body,
+        };
+        let updated = state
+            .repository
+            .update(uid, settings)
+            .await?
+            .ok_or(AppError::NotFound)?;
+
+        Ok(Json(
+            serde_json::to_value(&updated).expect("object can be deserialized"),
+        ))
+    } else {
+        Err(AppError::NotFound)
     }
-
-    let settings = Settings {
-        id: uid,
-        data: body,
-    };
-    let updated = state
-        .repository
-        .update(uid, settings)
-        .await?
-        .ok_or(AppError::NotFound)?;
-
-    Ok(Json(
-        serde_json::to_value(&updated).expect("object can be deserialized"),
-    ))
 }
 
 pub async fn delete_settings(
     State(state): State<Arc<AppState>>,
-    Path(uid): Path<Uuid>,
+    Path(uid): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    state.repository.delete(uid).await?;
-    Ok(StatusCode::NO_CONTENT)
+    if let Ok(uid) = Uuid::from_str(&uid) {
+        state.repository.delete(uid).await?;
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(AppError::NotFound)
+    }
 }
